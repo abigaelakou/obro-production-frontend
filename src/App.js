@@ -1,25 +1,20 @@
-import logo from './logo.svg';
-import './App.css';
+/**
+ * @description      : 
+ * @author           : AbigaelHOMENYA
+ * @group            : 
+ * @created          : 10/12/2025 - 13:07:53
+ * 
+ * MODIFICATION LOG
+ * - Version         : 1.0.0
+ * - Date            : 10/12/2025
+ * - Author          : AbigaelHOMENYA
+ * - Modification    : 
+ **/
+import React from 'react';
+import ObroProductionSite from './ObroProductionSite';
 
 function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+    return <ObroProductionSite / > ;
 }
 
 export default App;
