@@ -5,115 +5,132 @@
  * @created          : 12/12/2025 - 08:12:30
  * 
 **/
-import React, { useState } from 'react';
-import { Film, Users, Star, Briefcase, Menu, X, Play, Calendar, Eye, Heart, Instagram, Facebook, Award, Camera, Clapperboard, CheckCircle, XCircle, Clock, Mail, Phone, MapPin, BarChart3, UserPlus, FilmIcon, UserCheck } from 'lucide-react';
+import React, { useState , useEffect,useCallback} from 'react';
+import { Film, Users, Star, Briefcase, Menu, X, Play, Calendar, Eye, Heart, Instagram, Facebook,TikTok, Award, Camera, Clapperboard, CheckCircle, XCircle, Clock, Mail, Phone, MapPin, BarChart3, UserPlus, FilmIcon, UserCheck } from 'lucide-react';
+import { BASE_URL } from "./services/api";
+import { formatNumber } from "./utils/formatNumber";
+import FormEquipe from "./FormEquipe";
+import FormCasting from "./FormCasting";
+import FormPartenaire from "./FormPartenaire";
+import FormProduction from "./FormProduction";
+import FormUtilisateur from "./FormUtilisateur";
+
+
+import {
+  getPartenaires,
+  createPartenaire,
+  updatePartenaire,
+  deletePartenaire,
+
+//Productions
+  getProductions,
+  createProduction,
+  updateProduction,
+  deleteProduction,
+
+  //Celebrites
+  getCelebrites,
+  createCelebrite,
+  updateCelebrite,
+  deleteCelebrite,
+
+ //Castings
+  getCastings,
+  createCasting,
+  updateCasting,
+  deleteCasting,
+  // Candidatures
+ getCandidatures,
+  createCandidature,
+  updateCandidatureStatus,
+  deleteCandidature,
+
+// Utilisateurs
+  getUsers,
+  createUser,
+  updateUser,
+  updateUserStatus,
+  deleteUser
+
+} from "./services/api";
 
 const ObroProductionSite = () => {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
+ const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [currentView, setCurrentView] = useState('home');
   const [isAdmin, setIsAdmin] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [loginData, setLoginData] = useState({ email: '', password: '' });
   
-  const [productions, setProductions] = useState([
-    {
-      id: 1,
-      titre: "L'Héritage",
-      genre: "Drame",
-      categorie: "Film",
-      date_sortie: "2024-06-15",
-      img: "https://images.unsplash.com/photo-1485846234645-a62644f84728?w=800",
-      youtube_url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-      status: "publiée",
-      vues: 15420,
-      likes: 892,
-      description: "Un drame captivant sur les liens familiaux en Côte d'Ivoire"
-    },
-    {
-      id: 2,
-      titre: "Destins Croisés",
-      genre: "Romance",
-      categorie: "Série",
-      date_sortie: "2024-09-20",
-      img: "https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=800",
-      youtube_url: "https://www.youtube.com/watch?v=example",
-      status: "publiée",
-      vues: 28350,
-      likes: 1543,
-      description: "Une série romantique se déroulant à Abidjan"
-    }
-  ]);
+  const [productions, setProductions] = useState([]);
+  const [equipes, setEquipes] = useState([]);
+  const [partenaires, setPartenaires] = useState([]);
+  
+    // Charger toutes les données au démarrage
+  useEffect(() => {
+    loadAllData();
+  }, []);
 
-  const [celebrites, setCelebrites] = useState([
-    {
-      id: 1,
-      nom_celebrite: "Konan Joseph",
-      fonction: "Acteur Principal",
-      img: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400",
-      url_insta: "https://www.instagram.com/konanjoseph",
-      url_face: "https://www.facebook.com/konanjoseph",
-      url_tiktok: "https://www.tiktok.com/@konanjoseph",
-      status: "publiée",
-      bio: "Acteur ivoirien reconnu"
-    },
-    {
-      id: 2,
-      nom_celebrite: "Aicha Bamba",
-      fonction: "Réalisatrice",
-      img: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400",
-      url_insta: "https://www.instagram.com/aichabamba",
-      url_face: "https://www.facebook.com/aichabamba",
-      url_tiktok: "https://www.tiktok.com/@aichabamba",
-      status: "publiée",
-      bio: "Réalisatrice primée"
-    }
-  ]);
+const handleCandidature = (castingId) => {
+  setSelectedCasting(castingId);
+  setShowCandidatureForm(true);
+  };
+  // ÉTAPE 4: Ajouter la fonction submitCandidature
+const submitCandidature = async (formData) => {
+  try {
+    const candidatureData = {
+      ...formData,
+      id_casting: selectedCasting,
+    };
 
-  const [partenaires, setPartenaires] = useState([
-    {
-      id: 1,
-      nom: "Canal+ Afrique",
-      logo: "https://images.unsplash.com/photo-1599305445671-ac291c95aaa9?w=200",
-      status: "publié",
-      description: "Partenaire média principal"
-    },
-    {
-      id: 2,
-      nom: "Netflix International",
-      logo: "https://images.unsplash.com/photo-1574375927938-d5a98e8ffe85?w=200",
-      status: "publié",
-      description: "Distribution internationale"
-    }
-  ]);
+    const response = await createCandidature(candidatureData);
 
-  const [castings, setCastings] = useState([
-    {
-      id: 1,
-      lib_casting: "Recherche Acteur Principal - Nouveau Film",
-      img: "https://images.unsplash.com/photo-1478720568477-152d9b164e26?w=800",
-      date_publication: "2024-12-01",
-      date_cloture: "2025-01-15",
-      id_production: 1,
-      status: "publié",
-      description: "Nous recherchons un acteur principal pour notre prochain long métrage",
-      exigences: "Homme, 25-40 ans, expérience théâtre"
+    if (response.message) {
+      alert('Candidature envoyée avec succès !');
+      setShowCandidatureForm(false);
+      setSelectedCasting(null);
+      
+      // Recharger les candidatures
+      const data = await getCandidatures();
+      if (data.records) setCandidatures(data.records);
     }
-  ]);
+  } catch (error) {
+    console.error("Erreur lors de l'envoi de la candidature:", error);
+    alert("Erreur lors de l'envoi de la candidature");
+  }
+};
+  
+ const loadAllData = async () => {
+  try {
+    const partData = await getPartenaires();
+    if (partData.records) setPartenaires(partData.records);
 
-  const [candidatures, setCandidatures] = useState([
-    {
-      id: 1,
-      nom: "Kouadio Marc",
-      email: "marc@email.com",
-      telephone: "+225 07 08 09 10 11",
-      id_casting: 1,
-      cv_url: "#",
-      video_url: "#",
-      message: "Je suis très motivé pour ce rôle",
-      date_candidature: "2024-12-05",
-      statut: "en_attente"
-    }
-  ]);
+    const prodData = await getProductions();
+    if (prodData.records) setProductions(prodData.records);
+
+    const equipesData = await getCelebrites();
+    console.log("Réponse API célébrites:", equipesData);
+    if (equipesData.records) setEquipes(equipesData.records);
+
+    // Castings
+      const castingData = await getCastings();
+    if (castingData.records) setCastings(castingData.records);
+
+    // ✅ Charger les candidatures
+    const candidaturesData = await getCandidatures();
+    if (candidaturesData.records) setCandidatures(candidaturesData.records);
+  
+      // ✅ AJOUT: Charger les utilisateurs
+    const usersData = await getUsers();
+    if (usersData.records) setUsers(usersData.records);
+  }
+  
+  catch (error) {
+    console.error("Erreur lors du chargement des données:", error);
+  }
+};
+const [castings, setCastings] = useState([]);
+const [candidatures, setCandidatures] = useState([]);
+
 
   const [users, setUsers] = useState([
     {
@@ -129,15 +146,26 @@ const ObroProductionSite = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [showForm, setShowForm] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
-  const [formData, setFormData] = useState({});
+
   const [showCandidatureForm, setShowCandidatureForm] = useState(false);
   const [selectedCasting, setSelectedCasting] = useState(null);
 
-  const navItems = [
+
+  const initialForms = {
+    partenaires: { nom: '', description: '', logo: null, status: 'publié' },
+    castings: { lib_casting: '', description: '', exigences: '', img: null, date_publication: '', date_cloture: '', id_production: '', status: 'publié' },
+    productions: { titre: '', genre: '', categorie: '', date_sortie: '', img: null, youtube_url: '', description: '', status: 'publiée' },
+    equipes: { nom_celebrite: '', fonction: '', bio: '', description: '', img: null, url_insta: '', url_face: '', url_tiktok: '', status: 'publiée' },
+    utilisateurs: { name: '', email: '', role: '', password: '' }
+  };
+  // State dynamique basé sur l’onglet actif
+  const [formData, setFormData] = useState(initialForms[activeTab]);
+
+const navItems = [
     { id: 'home', label: 'Accueil', icon: Film },
     { id: 'productions', label: 'Productions', icon: Clapperboard },
     { id: 'casting', label: 'Casting', icon: Users },
-    { id: 'celebrites', label: 'Célébrités', icon: Star },
+    { id: 'equipes', label: 'Equipes', icon: Star },
     { id: 'partenaires', label: 'Partenaires', icon: Briefcase },
     { id: 'contact', label: 'Contact', icon: Camera }
   ];
@@ -165,68 +193,131 @@ const ObroProductionSite = () => {
       productionsPubliees: productions.filter(p => p.status === 'publiée').length,
       totalCastings: castings.length,
       castingsActifs: castings.filter(c => c.status === 'publié').length,
-      totalCelebrites: celebrites.length,
+      totalCelebrites: equipes.length,
       totalPartenaires: partenaires.length,
       candidaturesEnAttente: candidatures.filter(c => c.statut === 'en_attente').length,
       totalCandidatures: candidatures.length,
       totalUtilisateurs: users.length,
       utilisateursActifs: users.filter(u => u.status === 'actif').length,
-      vuesTotal: productions.reduce((acc, p) => acc + p.vues, 0),
-      likesTotal: productions.reduce((acc, p) => acc + p.likes, 0)
+      vuesTotal: productions.reduce((acc, p) => acc + Number(p.vues || 0), 0),
+      likesTotal: productions.reduce((acc, p) => acc + Number(p.likes || 0), 0),
+
     };
   };
 
-  const handleDelete = (id, type) => {
-    if (window.confirm('Êtes-vous sûr de vouloir supprimer cet élément ?')) {
-      switch(type) {
-        case 'productions':
-          setProductions(productions.filter(p => p.id !== id));
-          break;
-        case 'celebrites':
-          setCelebrites(celebrites.filter(c => c.id !== id));
-          break;
-        case 'partenaires':
-          setPartenaires(partenaires.filter(p => p.id !== id));
-          break;
-        case 'castings':
-          setCastings(castings.filter(c => c.id !== id));
-          break;
-        case 'utilisateurs':
-          setUsers(users.filter(u => u.id !== id));
-          break;
-        case 'candidatures':
-          setCandidatures(candidatures.filter(c => c.id !== id));
-          break;
-        default:
-          break;
-      }
-      alert('Élément supprimé avec succès !');
+  const handleDelete = async (id, type) => {
+  if (window.confirm("Êtes-vous sûr de vouloir supprimer cet élément ?")) {
+    switch (type) {
+      case "productions":
+         try { 
+         await deleteProduction(id); 
+          setProductions(productions.filter((p) => p.id !== id)); 
+          alert("Production supprimée avec succès !"); 
+        } catch (err) { 
+          console.error("Erreur suppression production:", err); 
+          alert("Échec de la suppression de la production."); 
+        } 
+        break;
+      
+     case "equipes": 
+        try { 
+          await deleteCelebrite(id); 
+          setEquipes(equipes.filter((c) => c.id !== id)); 
+          alert("Membre supprimé avec succès !"); 
+        } catch (err) { 
+          console.error("Erreur suppression membre:", err); 
+          alert("Échec de la suppression du membre."); 
+        } break;
+
+      case "partenaires":
+        try {
+          await deletePartenaire(id); // appel backend
+          setPartenaires(partenaires.filter((p) => p.id !== id));
+          alert("Partenaire supprimé avec succès !");
+        } catch (err) {
+          console.error("Erreur suppression partenaire:", err);
+          alert("Échec de la suppression du partenaire.");
+        }
+        break;
+
+      case "castings":
+         try { 
+          await deleteCasting(id); 
+          setCastings(castings.filter((c) => c.id !== id)); 
+          alert("Casting supprimé avec succès !"); 
+        } catch (err) { 
+          console.error("Erreur suppression casting:", err); 
+          alert("Échec de la suppression du casting."); 
+        } break;
+      
+      case "utilisateurs":
+        try {
+          await deleteUser(id);
+          setUsers(users.filter((u) => u.id !== id));
+          alert("Utilisateur supprimé avec succès !");
+        } catch (err) {
+          console.error("Erreur suppression utilisateur:", err);
+          alert("Échec de la suppression de l'utilisateur.");
+        }
+        break;
+
+       case "candidatures":
+        try {
+          await deleteCandidature(id);
+          setCandidatures(candidatures.filter((c) => c.id !== id));
+          alert("Candidature supprimée avec succès !");
+        } catch (err) {
+          console.error("Erreur suppression candidature:", err);
+          alert("Échec de la suppression de la candidature.");
+        }
+        break;
+
+      default:
+        break;
     }
-  };
+  }
+};
+const updateFormField = useCallback((field, value) => {
+  setFormData(prev => ({
+    ...prev,
+    [field]: value
+  }));
+}, []);
 
-  const handleEdit = (item) => {
-    setEditingItem(item);
-    setFormData(item);
-    setShowForm(true);
-  };
+  const handleEdit = useCallback((item) => {
+  setEditingItem(item);
+  setFormData({...item}); // ✅ Copie profonde
+  setShowForm(true);
+}, []);
 
-  const handleToggleUserStatus = (userId) => {
-    setUsers(users.map(user => {
-      if (user.id === userId) {
-        return {
-          ...user,
-          status: user.status === 'actif' ? 'bloqué' : 'actif'
-        };
-      }
-      return user;
-    }));
-    alert('Statut de l\'utilisateur modifié avec succès !');
-  };
+const handleToggleUserStatus = async (userId) => {
+  try {
+    const user = users.find(u => u.id === userId);
+    const newStatus = user.status === 'actif' ? 'bloqué' : 'actif';
+    
+    const response = await updateUserStatus(userId, newStatus);
+    
+    if (response.message) {
+      // Mettre à jour l'état local
+      setUsers(users.map(u => {
+        if (u.id === userId) {
+          return { ...u, status: newStatus };
+        }
+        return u;
+      }));
+      
+      alert(`Utilisateur ${newStatus === 'actif' ? 'réactivé' : 'bloqué'} avec succès !`);
+    }
+  } catch (error) {
+    console.error("Erreur lors de la mise à jour du statut:", error);
+    alert("Erreur lors de la mise à jour du statut");
+  }
+};
   
   const getActiveData = () => {
     switch(activeTab) {
       case 'productions': return productions;
-      case 'celebrites': return celebrites;
+      case 'equipes': return equipes;
       case 'partenaires': return partenaires;
       case 'castings': return castings;
       case 'utilisateurs': return users;
@@ -235,75 +326,125 @@ const ObroProductionSite = () => {
     }
   };
 
-  const resetForm = () => {
-    setShowForm(false);
-    setEditingItem(null);
-    setFormData({});
-  };
-
-  const handleCandidatureStatus = (candidatureId, newStatus) => {
-    setCandidatures(candidatures.map(c => {
-      if (c.id === candidatureId) {
-        return { ...c, statut: newStatus };
-      }
-      return c;
-    }));
-    alert(`Candidature ${newStatus === 'acceptée' ? 'acceptée' : 'rejetée'} avec succès !`);
-  };
-
-    const handleSubmit = () => {
-    if (editingItem) {
-      switch(activeTab) {
-        case 'productions':
-          setProductions(productions.map(p => p.id === editingItem.id ? {...formData, id: p.id} : p));
-          break;
-        case 'celebrites':
-          setCelebrites(celebrites.map(c => c.id === editingItem.id ? {...formData, id: c.id} : c));
-          break;
-        case 'partenaires':
-          setPartenaires(partenaires.map(p => p.id === editingItem.id ? {...formData, id: p.id} : p));
-          break;
-        case 'castings':
-          setCastings(castings.map(c => c.id === editingItem.id ? {...formData, id: c.id} : c));
-          break;
-        case 'utilisateurs':
-          setUsers(users.map(u => u.id === editingItem.id ? {...formData, id: u.id} : u));
-          break;
-        default:
-          break;
-      }
-      alert('Elément modifié avec succès!');
-    } else {
-      const newId = Math.max(...getActiveData().map(i => i.id), 0) + 1;
-      const newItem = {...formData, id: newId, created_at: new Date().toISOString().split('T')[0]};
-      
-      switch(activeTab) {
-        case 'productions':
-          setProductions([...productions, {...newItem, vues: 0, likes: 0, status: 'publiée'}]);
-          break;
-        case 'celebrites':
-          setCelebrites([...celebrites, {...newItem, status: 'publiée'}]);
-          break;
-        case 'partenaires':
-          setPartenaires([...partenaires, {...newItem, status: 'publié'}]);
-          break;
-        case 'castings':
-          setCastings([...castings, {...newItem, status: 'publié', date_publication: new Date().toISOString().split('T')[0]}]);
-          break;
-        case 'utilisateurs':
-          setUsers([...users, {...newItem, status: 'actif'}]);
-          break;
-        default:
-          break;
-      }
-      alert('Un élément ajouté avec succès !');
-    }
+const resetForm = useCallback(() => {
+  setShowForm(false);
+  setEditingItem(null);
+  setFormData(initialForms[activeTab]);
+}, []);
+  
+  const handleCandidatureStatus = async (candidatureId, newStatus) => {
+  try {
+    const response = await updateCandidatureStatus(candidatureId, newStatus);
     
+    if (response.message) {
+      // Mettre à jour l'état local
+      setCandidatures(candidatures.map(c => {
+        if (c.id === candidatureId) {
+          return { ...c, statut: newStatus };
+        }
+        return c;
+      }));
+      
+      alert(`Candidature ${newStatus === 'acceptée' ? 'acceptée' : 'rejetée'} avec succès !`);
+    }
+  } catch (error) {
+    console.error("Erreur lors de la mise à jour du statut:", error);
+    alert("Erreur lors de la mise à jour du statut");
+  }
+};
+
+const handleSubmit = async () => {
+  try {
+    let response;
+
+    if (activeTab === 'productions') {
+      if (editingItem) {
+        response = await updateProduction({ ...formData, id: editingItem.id });
+      } else {
+        response = await createProduction(formData);
+      }
+      if (response && response.message) {
+        const data = await getProductions();
+        if (data.records) setProductions(data.records);
+      }
+    } 
+    else if (activeTab === 'equipes') {
+      if (editingItem) {
+        response = await updateCelebrite({ ...formData, id: editingItem.id });
+      } else {
+        response = await createCelebrite(formData);
+      }
+      if (response && response.message) {
+        const data = await getCelebrites();
+        if (data.records) setEquipes(data.records);
+      }
+    } 
+    else if (activeTab === 'partenaires') {
+      if (editingItem) {
+        response = await updatePartenaire({ ...formData, id: editingItem.id });
+      } else {
+        response = await createPartenaire(formData);
+      }
+      if (response && response.message) {
+        const data = await getPartenaires();
+        if (data.records) setPartenaires(data.records);
+      }
+    }
+    // ✅ CORRECTION ICI - Passer formData comme objet, pas FormData vide
+    else if (activeTab === "castings") {
+      if (editingItem) {
+        response = await updateCasting({ ...formData, id: editingItem.id });
+      } else {
+        response = await createCasting(formData);
+      }
+      if (response && response.message) {
+        const data = await getCastings();
+        if (data.records) setCastings(data.records);
+      }
+    }
+
+     else if (activeTab === 'utilisateurs') {
+      if (editingItem) {
+        response = await updateUser({ 
+          id: editingItem.id,
+          name: formData.name,
+          email: formData.email,
+          role: formData.role
+        });
+      } else {
+        response = await createUser({
+          name: formData.name,
+          email: formData.email,
+          password: formData.password,
+          role: formData.role
+        });
+      }
+      
+      if (response && response.message) {
+        const data = await getUsers();
+        if (data.records) setUsers(data.records);
+      }
+    }
+
+  if (response && response.message) {
+    alert(response.message);
+      resetForm();
+    } else {
+      alert("Enregistrement effectué (vérifier la base de données)");
+      resetForm();
+      await loadAllData();
+    }
+  } catch (error) {
+    console.error("Erreur:", error);
+    alert("Enregistrement effectué malgré l'erreur. Rechargement des données...");
     setShowForm(false);
     setEditingItem(null);
-    setFormData({});
-  };
- const HeroSection = () => (
+    // setFormData({});
+    await loadAllData();
+  }
+};
+
+const HeroSection = () => (
     <div className="relative min-h-screen">
       <div className="relative h-screen flex items-center justify-center overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-red-900 via-black to-black opacity-90"></div>
@@ -320,11 +461,10 @@ const ObroProductionSite = () => {
             <div className="bg-white p-8 rounded-2xl shadow-2xl transform hover:scale-105 transition-all">
               <div className="text-7xl font-bold text-black">O'BRO</div>
               <div className="text-3xl text-red-600 font-bold">PRODUCTION</div>
-            
             </div>
           </div>
           <h1 className="text-6xl md:text-8xl font-bold mb-6 leading-tight">
-          Créateurs d'émotions
+            Créateurs d'émotions
           </h1>
           <p className="text-2xl md:text-3xl mb-4 text-gray-200 font-light">
             Production audiovisuelle d'excellence
@@ -355,17 +495,33 @@ const ObroProductionSite = () => {
         <div className="max-w-6xl mx-auto">
           <div className="grid md:grid-cols-2 gap-12 items-center">
             <div>
-              <h2 className="text-5xl font-bold text-white mb-6">A propos d'O'BRO Production</h2>
+              <h2 className="text-5xl font-bold text-white mb-6">QUI SOMMES-NOUS ?</h2>
               <p className="text-xl text-gray-300 mb-6 leading-relaxed">
-                Basé à Abidjan, O'BRO Production est une maison de production audiovisuelle qui crée des contenus originaux et captivants.
+                  <em className="text-3xl text-red-400 font-bold">O'BRO PRODUCTION</em> est une société bidimensionnelle dont le business model est basé sur deux composantes :
               </p>
+            <ul className="space-y-4 text-gray-300">
+              <li className='text-justify'>✔ Une composante audiovisuelle avec pour domaine d’intervention la fiction, la création de 
+                    contenu télé, la production de films documentaire et la couverture médiatique pour les 
+                    déplacements et/ou évènements officiels
+              </li>
+              <li className='text-justify'>✔ Une composante Conseils en accompagnant les entreprises dans leurs études de marché et 
+                    dans l’optimisation de la réalisation de leurs vidéos .
+              </li>
+
+                <li className='text-justify'>S’appuyant sur un personnel jeune mais expérimenté, O’BRO Production jouit d’une grande 
+                  expérience sur les différentes étapes de la production audiovisuelle notamment l’écriture, la 
+                  production et la post-production.
+              </li>
+            </ul>
+
+           
               <div className="grid grid-cols-3 gap-6">
                 <div className="text-center">
                   <div className="text-4xl font-bold text-red-600 mb-2">{productions.length}+</div>
                   <div className="text-gray-400">Productions</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-4xl font-bold text-red-600 mb-2">{celebrites.length}+</div>
+                  <div className="text-4xl font-bold text-red-600 mb-2">{equipes.length}+</div>
                   <div className="text-gray-400">Talents</div>
                 </div>
                 <div className="text-center">
@@ -386,6 +542,9 @@ const ObroProductionSite = () => {
       </div>
     </div>
   );
+
+
+
    const ProductionsView = () => (
       <div className="py-20 px-4 bg-gradient-to-b from-gray-900 to-black min-h-screen">
         <div className="max-w-7xl mx-auto">
@@ -397,7 +556,7 @@ const ObroProductionSite = () => {
               <div key={prod.id} className="bg-gray-800 rounded-2xl overflow-hidden shadow-2xl transform hover:scale-105 transition-all group">
                 <div className="relative h-72 overflow-hidden">
                   <img 
-                    src={prod.img} 
+                    src={`${BASE_URL}/${prod.img}`}
                     alt={prod.titre}
                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                   />
@@ -416,11 +575,12 @@ const ObroProductionSite = () => {
                     <div className="flex gap-3">
                       <span className="flex items-center gap-1">
                         <Eye size={16} />
-                        {prod.vues.toLocaleString()}
+                        {/* {prod.vues.toLocaleString()} */}
+                        {formatNumber(prod.vues)}
                       </span>
                       <span className="flex items-center gap-1">
                         <Heart size={16} />
-                        {prod.likes.toLocaleString()}
+                        {formatNumber(prod.likes)}
                       </span>
                     </div>
                   </div>
@@ -448,8 +608,8 @@ const ObroProductionSite = () => {
           <p className="text-xl text-gray-400 mb-12 text-center">Rejoignez l'aventure O'BRO Production</p>
           
           {showCandidatureForm && (
-            <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4 overflow-y-auto">
-              <div className="bg-gray-900 rounded-2xl p-6 max-w-2xl w-full my-8">
+            <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
+              <div className="bg-gray-900 rounded-2xl p-6 max-w-2xl w-full my-8 max-h-screen overflow-y-auto">
                 <h3 className="text-3xl font-bold text-white mb-4">Postuler au casting</h3>
                 <form onSubmit={(e) => {
                   e.preventDefault();
@@ -485,7 +645,7 @@ const ObroProductionSite = () => {
                       />
                     </div>
                     <div>
-                      <label className="block text-white mb-2 font-semibold">TÃ©lÃ©phone *</label>
+                      <label className="block text-white mb-2 font-semibold">Téléphone *</label>
                       <input 
                         name="telephone"
                         required
@@ -505,7 +665,7 @@ const ObroProductionSite = () => {
                       />
                     </div>
                     <div>
-                      <label className="block text-white mb-2 font-semibold">VidÃ©o de prÃ©sentation (URL)</label>
+                      <label className="block text-white mb-2 font-semibold">Vidéo de présentation (URL)</label>
                       <input 
                         name="video_url"
                         type="url" 
@@ -549,8 +709,8 @@ const ObroProductionSite = () => {
               const production = productions.find(p => p.id === casting.id_production);
               return (
                 <div key={casting.id} className="bg-gray-900 rounded-2xl overflow-hidden shadow-2xl">
-                  <img 
-                    src={casting.img} 
+                  
+                    <img src={`${BASE_URL}/${casting.img}`}
                     alt={casting.lib_casting}
                     className="w-full h-64 object-cover"
                   />
@@ -585,7 +745,11 @@ const ObroProductionSite = () => {
         <div className="max-w-7xl mx-auto px-4 py-6 flex justify-between items-center">
           <div className="flex items-center gap-4">
             <div className="bg-white p-2 rounded-lg">
-              <span className="text-2xl font-bold text-black">O'BRO</span>
+               <img 
+                src="/logoObro2.png"   
+                alt="O'BRO Production" 
+                className="h-full max-h-12 object-contain" 
+              />
             </div>
             <div>
               <h1 className="text-2xl font-bold text-white">Administration</h1>
@@ -602,7 +766,7 @@ const ObroProductionSite = () => {
 
       <div className="max-w-7xl mx-auto px-4 py-8">
         <div className="flex gap-2 mb-8 overflow-x-auto pb-2">
-          {['dashboard', 'productions', 'celebrites', 'partenaires', 'castings', 'candidatures', 'utilisateurs'].map(tab => (
+          {['dashboard', 'productions', 'equipes', 'partenaires', 'castings', 'candidatures', 'utilisateurs'].map(tab => (
             <button
               key={tab}
               onClick={() => { setActiveTab(tab); setShowForm(false); }}
@@ -620,63 +784,116 @@ const ObroProductionSite = () => {
         {activeTab === 'dashboard' ? (
           <DashboardView />
         ) : activeTab === 'candidatures' ? (
-          <div className="bg-white rounded-2xl shadow-lg p-6">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Gestion des Candidatures</h2>
-            
+        // ✅ SECTION CANDIDATURES
+        <div className="bg-white rounded-2xl shadow-lg p-6">
+          <h2 className="text-2xl font-bold text-gray-900 mb-6">Gestion des Candidatures</h2>
+          
+          {candidatures.length === 0 ? (
+            <div className="text-center py-12">
+              <UserPlus size={48} className="mx-auto text-gray-400 mb-4" />
+              <p className="text-gray-500 text-lg">Aucune candidature pour le moment</p>
+            </div>
+          ) : (
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead className="bg-gray-100">
                   <tr>
+                    <th className="p-3 text-left font-semibold">ID</th>
                     <th className="p-3 text-left font-semibold">Nom</th>
                     <th className="p-3 text-left font-semibold">Email</th>
                     <th className="p-3 text-left font-semibold">Téléphone</th>
+                    <th className="p-3 text-left font-semibold">Casting</th>
+                    <th className="p-3 text-left font-semibold">Date</th>
                     <th className="p-3 text-left font-semibold">Statut</th>
                     <th className="p-3 text-left font-semibold">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {candidatures.map(candidature => (
-                    <tr key={candidature.id} className="border-b hover:bg-gray-50">
-                      <td className="p-3 font-semibold">{candidature.nom}</td>
-                      <td className="p-3">{candidature.email}</td>
-                      <td className="p-3">{candidature.telephone}</td>
-                      <td className="p-3">
-                        <span className={`px-3 py-1 rounded-full text-sm font-semibold ${
-                          candidature.statut === 'en_attente' ? 'bg-yellow-100 text-yellow-800' :
-                          candidature.statut === 'acceptée' ? 'bg-green-100 text-green-800' :
-                          'bg-red-100 text-red-800'
-                        }`}>
-                          {candidature.statut === 'en_attente' ? 'En attente' :
-                           candidature.statut === 'acceptée' ? 'Acceptée' : 'Rejettée'}
-                        </span>
-                      </td>
-                      <td className="p-3">
-                        <div className="flex gap-2">
-                          {candidature.statut === 'en_attente' && (
-                            <>
-                              <button 
-                                onClick={() => handleCandidatureStatus(candidature.id, 'acceptée')}
-                                className="text-green-600 hover:text-green-800 font-semibold"
+                  {candidatures.map(candidature => {
+                    const casting = castings.find(c => c.id === candidature.id_casting);
+                    return (
+                      <tr key={candidature.id} className="border-b hover:bg-gray-50">
+                        <td className="p-3">{candidature.id}</td>
+                        <td className="p-3 font-semibold">{candidature.nom}</td>
+                        <td className="p-3">{candidature.email}</td>
+                        <td className="p-3">{candidature.telephone}</td>
+                        <td className="p-3">
+                          <span className="text-sm text-gray-600">
+                            {candidature.lib_casting || casting?.lib_casting || 'N/A'}
+                          </span>
+                        </td>
+                        <td className="p-3 text-sm text-gray-600">
+                          {candidature.date_candidature 
+                            ? new Date(candidature.date_candidature).toLocaleDateString('fr-FR')
+                            : 'N/A'}
+                        </td>
+                        <td className="p-3">
+                          <span className={`px-3 py-1 rounded-full text-sm font-semibold ${
+                            candidature.statut === 'en_attente' ? 'bg-yellow-100 text-yellow-800' :
+                            candidature.statut === 'acceptée' ? 'bg-green-100 text-green-800' :
+                            'bg-red-100 text-red-800'
+                          }`}>
+                            {candidature.statut === 'en_attente' ? 'En attente' :
+                            candidature.statut === 'acceptée' ? 'Acceptée' : 
+                            candidature.statut === 'rejetée' ? 'Rejetée' : candidature.statut}
+                          </span>
+                        </td>
+                        <td className="p-3">
+                          <div className="flex gap-2 flex-wrap">
+                            {candidature.statut === 'en_attente' && (
+                              <>
+                                <button 
+                                  onClick={() => handleCandidatureStatus(candidature.id, 'acceptée')}
+                                  className="text-green-600 hover:text-green-800 font-semibold text-sm"
+                                >
+                                  ✓ Accepter
+                                </button>
+                                <button 
+                                  onClick={() => handleCandidatureStatus(candidature.id, 'rejetée')}
+                                  className="text-orange-600 hover:text-orange-800 font-semibold text-sm"
+                                >
+                                  ✗ Rejeter
+                                </button>
+                              </>
+                            )}
+                            {candidature.cv_url && (
+                              <a 
+                                href={candidature.cv_url} 
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                className="text-blue-600 hover:text-blue-800 font-semibold text-sm"
                               >
-                                Accepter
-                              </button>
-                              <button 
-                                onClick={() => handleCandidatureStatus(candidature.id, 'rejettée')}
-                                className="text-red-600 hover:text-red-800 font-semibold"
+                                📄 CV
+                              </a>
+                            )}
+                            {candidature.video_url && (
+                              <a 
+                                href={candidature.video_url} 
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                className="text-purple-600 hover:text-purple-800 font-semibold text-sm"
                               >
-                                Rejeter
-                              </button>
-                            </>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
+                                🎥 Vidéo
+                              </a>
+                            )}
+                            <button 
+                              onClick={() => handleDelete(candidature.id, 'candidatures')}
+                              className="text-red-600 hover:text-red-800 font-semibold text-sm"
+                            >
+                              🗑️ Supprimer
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
-          </div>
-        ) : (
+          )}
+        </div>
+      )  :
+           (
           <div className="bg-white rounded-2xl shadow-lg p-6">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-2xl font-bold text-gray-900">
@@ -689,7 +906,7 @@ const ObroProductionSite = () => {
                   } else {
                     setShowForm(true);
                     setEditingItem(null);
-                    setFormData({});
+                   setFormData(initialForms[activeTab]);
                   }
                 }}
                 className="bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-xl font-semibold"
@@ -697,284 +914,149 @@ const ObroProductionSite = () => {
                 {showForm ? 'Annuler' : 'Ajouter'}
               </button>
                 </div>
+          {/* /PRODUCTION */}
+           {showForm && activeTab === "productions" && (
+            <FormProduction
+              editingItem={editingItem}
+              onSubmit={async (form) => {
+                let response;
+                if (editingItem) {
+                  response = await updateProduction({ ...form, id: editingItem.id });
+                } else {
+                  response = await createProduction(form);
+                }
+                if (response && response.message) {
+                  const data = await getProductions();
+                  if (data.records) setProductions(data.records);
+                  alert(response.message);
+                }
+                setEditingItem(null);
+                setShowForm(false);
+              }}
+              onCancel={() => {
+                setEditingItem(null);
+                setShowForm(false);
+              }}
+            />
+          )}
 
-              {/* Formulaire Productions */}
-            {showForm && activeTab === 'productions' && (
-              <div className="mb-8 p-6 bg-red-50 rounded-2xl border-2 border-red-200">
-                <h3 className="text-xl font-bold mb-4">
-                  {editingItem ? 'Modifier' : 'Nouvelle Production'}
-                </h3>
-                <div className="grid md:grid-cols-2 gap-4">
-                  <input 
-                    placeholder="Titre" 
-                    value={formData.titre || ''}
-                    onChange={(e) => setFormData({...formData, titre: e.target.value})}
-                    className="p-3 border-2 rounded-xl focus:border-red-600 outline-none" 
-                  />
-                  <input 
-                    placeholder="Genre" 
-                    value={formData.genre || ''}
-                    onChange={(e) => setFormData({...formData, genre: e.target.value})}
-                    className="p-3 border-2 rounded-xl focus:border-red-600 outline-none" 
-                  />
-                  <select
-                    value={formData.categorie || ''}
-                    onChange={(e) => setFormData({...formData, categorie: e.target.value})}
-                    className="p-3 border-2 rounded-xl focus:border-red-600 outline-none"
-                  >
-                    <option value="">Catégorie</option>
-                    <option value="Film">Film</option>
-                    <option value="Série">Série</option>
-                  </select>
-                  <input 
-                    type="date" 
-                    value={formData.date_sortie || ''}
-                    onChange={(e) => setFormData({...formData, date_sortie: e.target.value})}
-                    className="p-3 border-2 rounded-xl focus:border-red-600 outline-none" 
-                  />
-                  <input 
-                    placeholder="URL Image" 
-                    value={formData.img || ''}
-                    onChange={(e) => setFormData({...formData, img: e.target.value})}
-                    className="p-3 border-2 rounded-xl focus:border-red-600 outline-none md:col-span-2" 
-                  />
-                  <input 
-                    placeholder="URL YouTube" 
-                    value={formData.youtube_url || ''}
-                    onChange={(e) => setFormData({...formData, youtube_url: e.target.value})}
-                    className="p-3 border-2 rounded-xl focus:border-red-600 outline-none md:col-span-2" 
-                  />
-                  <textarea
-                    placeholder="Description"
-                    value={formData.description || ''}
-                    onChange={(e) => setFormData({...formData, description: e.target.value})}
-                    rows="3"
-                    className="p-3 border-2 rounded-xl focus:border-red-600 outline-none md:col-span-2"
-                  />
-                  <button 
-                    onClick={handleSubmit}
-                    className="bg-red-600 hover:bg-red-700 text-white py-3 rounded-xl font-semibold md:col-span-2"
-                  >
-                    {editingItem ? 'Mettre à  jour' : 'Enregistrer'}
-                  </button>
-                </div>
-              </div>
-            )}
+               {/* ÉQUIPE */}
+          {showForm && activeTab === "equipes" && (
+            <FormEquipe
+              editingItem={editingItem}
+              onSubmit={async (form) => {
+                let response;
+                if (editingItem) {
+                  response = await updateCelebrite({ ...form, id: editingItem.id });
+                } else {
+                  response = await createCelebrite(form);
+                }
+                if (response && response.message) {
+                  const data = await getCelebrites();
+                  if (data.records) setEquipes(data.records);
+                  alert(response.message);
+                }
+                setEditingItem(null);
+                setShowForm(false);
+              }}
+              onCancel={() => {
+                setEditingItem(null);
+                setShowForm(false);
+              }}
+            />
+          )}
 
-      
-            {/* Formulaire celebritÃƒÂ© */}
-            {showForm && activeTab === 'celebrites' && (
-              <div className="mb-8 p-6 bg-gradient-to-br from-purple-50 to-pink-50 rounded-2xl border-2 border-purple-200">
-                <h3 className="text-xl font-bold mb-4">
-                  {editingItem ? 'Modifier la Célébritée' : 'Nouvelle Célébritée'}
-                </h3>
-                <div className="grid md:grid-cols-2 gap-4">
-                  <input 
-                    placeholder="Nom complet" 
-                    value={formData.nom_celebrite || ''}
-                    onChange={(e) => setFormData({...formData, nom_celebrite: e.target.value})}
-                    className="p-3 border-2 border-gray-300 rounded-xl focus:border-purple-600 outline-none" 
-                  />
-                  <input 
-                    placeholder="Fonction (ex: Acteur, RÃƒÂ©alisateur)" 
-                    value={formData.fonction || ''}
-                    onChange={(e) => setFormData({...formData, fonction: e.target.value})}
-                    className="p-3 border-2 border-gray-300 rounded-xl focus:border-purple-600 outline-none" 
-                  />
-                  <input 
-                    placeholder="URL Photo" 
-                    value={formData.img || ''}
-                    onChange={(e) => setFormData({...formData, img: e.target.value})}
-                    className="p-3 border-2 border-gray-300 rounded-xl focus:border-purple-600 outline-none md:col-span-2" 
-                  />
-                  <textarea
-                    placeholder="Biographie courte"
-                    value={formData.bio || ''}
-                    onChange={(e) => setFormData({...formData, bio: e.target.value})}
-                    rows="2"
-                    className="p-3 border-2 border-gray-300 rounded-xl focus:border-purple-600 outline-none md:col-span-2"
-                  />
-                  <input 
-                    placeholder="URL Instagram (https://www.instagram.com/...)" 
-                    value={formData.url_insta || ''}
-                    onChange={(e) => setFormData({...formData, url_insta: e.target.value})}
-                    className="p-3 border-2 border-gray-300 rounded-xl focus:border-purple-600 outline-none" 
-                  />
-                  <input 
-                    placeholder="URL Facebook (https://www.facebook.com/...)" 
-                    value={formData.url_face || ''}
-                    onChange={(e) => setFormData({...formData, url_face: e.target.value})}
-                    className="p-3 border-2 border-gray-300 rounded-xl focus:border-purple-600 outline-none" 
-                  />
-                  <input 
-                    placeholder="URL TikTok (https://www.tiktok.com/@...)" 
-                    value={formData.url_tiktok || ''}
-                    onChange={(e) => setFormData({...formData, url_tiktok: e.target.value})}
-                    className="p-3 border-2 border-gray-300 rounded-xl focus:border-purple-600 outline-none md:col-span-2" 
-                  />
-                  <button 
-                    onClick={handleSubmit}
-                    className="bg-purple-600 hover:bg-purple-700 text-white py-3 rounded-xl font-semibold md:col-span-2"
-                  >
-                    {editingItem ? 'Mettre à  jour' : 'Enregistrer'}
-                  </button>
-                </div>
-              </div>
-            )}
+            {/* Partenaires */}
+         {showForm && activeTab === "partenaires" && (
+          <FormPartenaire
+            editingItem={editingItem}
+            onSubmit={async (form) => {
+              let response;
+              if (editingItem) {
+                response = await updatePartenaire({ ...form, id: editingItem.id });
+              } else {
+                response = await createPartenaire(form);
+              }
+              if (response && response.message) {
+                const data = await getPartenaires();
+                if (data.records) setPartenaires(data.records);
+                alert(response.message);
+              }
+              setEditingItem(null);
+              setShowForm(false);
+            }}
+            onCancel={() => {
+              setEditingItem(null);
+              setShowForm(false);
+            }}
+          />
+          )}
 
-            {/* Formulaire Partenaires */}
-            {showForm && activeTab === 'partenaires' && (
-              <div className="mb-8 p-6 bg-gradient-to-br from-blue-50 to-cyan-50 rounded-2xl border-2 border-blue-200">
-                <h3 className="text-xl font-bold mb-4">
-                  {editingItem ? 'Modifier le partenaire' : 'Nouveau Partenaire'}
-                </h3>
-                <div className="grid gap-4">
-                  <input 
-                    placeholder="Nom du partenaire" 
-                    value={formData.nom || ''}
-                    onChange={(e) => setFormData({...formData, nom: e.target.value})}
-                    className="p-3 border-2 border-gray-300 rounded-xl focus:border-blue-600 outline-none" 
-                  />
-                  <input 
-                    placeholder="URL du logo" 
-                    value={formData.logo || ''}
-                    onChange={(e) => setFormData({...formData, logo: e.target.value})}
-                    className="p-3 border-2 border-gray-300 rounded-xl focus:border-blue-600 outline-none" 
-                  />
-                  <textarea
-                    placeholder="Description (optionnel)"
-                    value={formData.description || ''}
-                    onChange={(e) => setFormData({...formData, description: e.target.value})}
-                    rows="2"
-                    className="p-3 border-2 border-gray-300 rounded-xl focus:border-blue-600 outline-none"
-                  />
-                  <button 
-                    onClick={handleSubmit}
-                    className="bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-semibold"
-                  >
-                    {editingItem ? 'Mettre à  jour' : 'Enregistrer'}
-                  </button>
-                </div>
-              </div>
-            )}
 
-            {/* Formulaire Castings */}
-            {showForm && activeTab === 'castings' && (
-              <div className="mb-8 p-6 bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl border-2 border-green-200">
-                <h3 className="text-xl font-bold mb-4">
-                  {editingItem ? 'Modifier le casting' : 'Nouveau Casting'}
-                </h3>
-                <div className="grid gap-4">
-                  <input 
-                    placeholder="Libellé du casting" 
-                    value={formData.lib_casting || ''}
-                    onChange={(e) => setFormData({...formData, lib_casting: e.target.value})}
-                    className="p-3 border-2 border-gray-300 rounded-xl focus:border-green-600 outline-none" 
-                  />
-                  <textarea
-                    placeholder="Description du castiong"
-                    value={formData.description || ''}
-                    onChange={(e) => setFormData({...formData, description: e.target.value})}
-                    rows="3"
-                    className="p-3 border-2 border-gray-300 rounded-xl focus:border-green-600 outline-none"
-                  />
-                  <textarea
-                    placeholder="Exigences du casting"
-                    value={formData.exigences || ''}
-                    onChange={(e) => setFormData({...formData, exigences: e.target.value})}
-                    rows="2"
-                    className="p-3 border-2 border-gray-300 rounded-xl focus:border-green-600 outline-none"
-                  />
-                  <input 
-                    placeholder="URL de l'image" 
-                    value={formData.img || ''}
-                    onChange={(e) => setFormData({...formData, img: e.target.value})}
-                    className="p-3 border-2 border-gray-300 rounded-xl focus:border-green-600 outline-none" 
-                  />
-                  <div className="grid md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-semibold mb-2">Date de cloture</label>
-                      <input 
-                        type="date"
-                        value={formData.date_cloture || ''}
-                        onChange={(e) => setFormData({...formData, date_cloture: e.target.value})}
-                        className="w-full p-3 border-2 border-gray-300 rounded-xl focus:border-green-600 outline-none" 
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-semibold mb-2">Production associée</label>
-                      <select
-                        value={formData.id_production || ''}
-                        onChange={(e) => setFormData({...formData, id_production: parseInt(e.target.value)})}
-                        className="w-full p-3 border-2 border-gray-300 rounded-xl focus:border-green-600 outline-none"
-                      >
-                        <option value="">Sélectionner une production</option>
-                        {productions.map(prod => (
-                          <option key={prod.id} value={prod.id}>{prod.titre}</option>
-                        ))}
-                      </select>
-                    </div>
-                  </div>
-                  <button 
-                    onClick={handleSubmit}
-                    className="bg-green-600 hover:bg-green-700 text-white py-3 rounded-xl font-semibold"
-                  >
-                    {editingItem ? 'Mettre à  jour' : 'Enregistrer'}
-                  </button>
-                </div>
-              </div>
-            )}
+           {/* CASTING */}
+        {showForm && activeTab === "castings" && (
+          <FormCasting
+            productions={productions}
+            editingItem={editingItem}
+            onSubmit={async (form) => {
+              let response;
+              if (editingItem) {
+                response = await updateCasting({ ...form, id: editingItem.id });
+              } else {
+                response = await createCasting(form);
+              }
+              if (response && response.message) {
+                const data = await getCastings();
+                if (data.records) setCastings(data.records);
+                alert(response.message);
+              }
+              setEditingItem(null);
+              setShowForm(false);
+            }}
+            onCancel={() => {
+              setEditingItem(null);
+              setShowForm(false);
+            }}
+          />
+        )}
 
-            {/* Formulaire Utilisateurs */}
-            {showForm && activeTab === 'utilisateurs' && (
-              <div className="mb-8 p-6 bg-gradient-to-br from-yellow-50 to-amber-50 rounded-2xl border-2 border-yellow-200">
-                <h3 className="text-xl font-bold mb-4">
-                  {editingItem ? 'Modifier l\'utilisateur' : 'Nouvel Utilisateur'}
-                </h3>
-                <div className="grid md:grid-cols-2 gap-4">
-                  <input 
-                    placeholder="Nom complet" 
-                    value={formData.name || ''}
-                    onChange={(e) => setFormData({...formData, name: e.target.value})}
-                    className="p-3 border-2 border-gray-300 rounded-xl focus:border-yellow-600 outline-none" 
-                  />
-                  <input 
-                    placeholder="Email" 
-                    type="email"
-                    value={formData.email || ''}
-                    onChange={(e) => setFormData({...formData, email: e.target.value})}
-                    className="p-3 border-2 border-gray-300 rounded-xl focus:border-yellow-600 outline-none" 
-                  />
-                  <select
-                    value={formData.role || ''}
-                    onChange={(e) => setFormData({...formData, role: e.target.value})}
-                    className="p-3 border-2 border-gray-300 rounded-xl focus:border-yellow-600 outline-none"
-                  >
-                    <option value="">Selectionner un role</option>
-                    <option value="Administrateur">Administrateur</option>
-                    <option value="Auditeur">Auditeur</option>
-                    <option value="Contributeur">Contributeur</option>
-                  </select>
-                  {!editingItem && (
-                    <input 
-                      placeholder="Mot de passe" 
-                      type="password"
-                      value={formData.password || ''}
-                      onChange={(e) => setFormData({...formData, password: e.target.value})}
-                      className="p-3 border-2 border-gray-300 rounded-xl focus:border-yellow-600 outline-none" 
-                    />
-                  )}
-                  <button 
-                    onClick={handleSubmit}
-                    className="bg-yellow-600 hover:bg-yellow-700 text-white py-3 rounded-xl font-semibold md:col-span-2"
-                  >
-                    {editingItem ? 'Mettre à  jour' : 'Enregistrer'}
-                  </button>
-                </div>
-              </div>
-            )}
-            
-            
+
+          {/* Utilisateurs */}
+           {showForm && activeTab === "utilisateurs" && (
+            <FormUtilisateur
+              editingItem={editingItem}
+              onSubmit={async (form) => {
+                let response;
+                if (editingItem) {
+                  response = await updateUser({
+                    id: editingItem.id,
+                    name: form.name,
+                    email: form.email,
+                    role: form.role
+                  });
+                } else {
+                  response = await createUser({
+                    name: form.name,
+                    email: form.email,
+                    password: form.password,
+                    role: form.role
+                  });
+                }
+                if (response && response.message) {
+                  const data = await getUsers();
+                  if (data.records) setUsers(data.records);
+                  alert(response.message);
+                }
+                setEditingItem(null);
+                setShowForm(false);
+              }}
+              onCancel={() => {
+                setEditingItem(null);
+                setShowForm(false);
+              }}
+            />
+          )}
+
 
             {/* Tableaux pour toutes les sections */}
             <div className="overflow-x-auto">
@@ -985,7 +1067,7 @@ const ObroProductionSite = () => {
                     <th className="p-3 text-left font-semibold">
                       {activeTab === 'utilisateurs' ? 'Nom' : 
                        activeTab === 'productions' ? 'Titre' :
-                       activeTab === 'celebrites' ? 'Nom' :
+                       activeTab === 'equipes' ? 'Nom' :
                        activeTab === 'partenaires' ? 'Nom' :
                        activeTab === 'castings' ? 'Libelle' : 'Nom/Titre'}
                     </th>
@@ -1002,7 +1084,7 @@ const ObroProductionSite = () => {
                         <th className="p-3 text-left font-semibold">Vues</th>
                       </>
                     )}
-                    {activeTab === 'celebrites' && (
+                    {activeTab === 'equipes' && (
                       <th className="p-3 text-left font-semibold">Fonction</th>
                     )}
                     {activeTab === 'castings' && (
@@ -1018,7 +1100,8 @@ const ObroProductionSite = () => {
                       <td className="p-3">{item.id}</td>
                       <td className="p-3">
                         <div className="flex items-center gap-3">
-                          <img src={item.img} alt={item.titre} className="w-12 h-12 object-cover rounded-lg" />
+                          <img src={`${BASE_URL}/${item.img}`}
+                            alt={item.titre} className="w-12 h-12 object-cover rounded-lg" />
                           <div>
                             <div className="font-semibold">{item.titre}</div>
                           </div>
@@ -1026,7 +1109,8 @@ const ObroProductionSite = () => {
                       </td>
                       <td className="p-3">{item.categorie}</td>
                       <td className="p-3">{item.genre}</td>
-                      <td className="p-3">{item.vues.toLocaleString()}</td>
+                      <td className="p-3">{formatNumber(item.vues)}</td>
+
                       <td className="p-3">
                         <span className="px-3 py-1 rounded-full text-sm font-semibold bg-green-100 text-green-800">
                           {item.status}
@@ -1049,12 +1133,13 @@ const ObroProductionSite = () => {
                     </tr>
                   ))}
                   
-                  {activeTab === 'celebrites' && celebrites.map(item => (
+                  {activeTab === 'equipes' && equipes.map(item => (
                     <tr key={item.id} className="border-b hover:bg-gray-50">
                       <td className="p-3">{item.id}</td>
                       <td className="p-3">
                         <div className="flex items-center gap-3">
-                          <img src={item.img} alt={item.nom_celebrite} className="w-12 h-12 object-cover rounded-full" />
+                          <img src={`http://localhost/obro-production-backend/${item.img}`} 
+                          alt={item.img} className="w-12 h-12 object-cover rounded-full" />
                           <span className="font-semibold">{item.nom_celebrite}</span>
                         </div>
                       </td>
@@ -1072,7 +1157,7 @@ const ObroProductionSite = () => {
                           Modifier
                         </button>
                         <button 
-                          onClick={() => handleDelete(item.id, 'celebrites')}
+                          onClick={() => handleDelete(item.id, 'equipes')}
                           className="text-red-600 hover:text-red-800 font-semibold transition-colors"
                         >
                           Supprimer
@@ -1086,7 +1171,7 @@ const ObroProductionSite = () => {
                       <td className="p-3">{item.id}</td>
                       <td className="p-3">
                         <div className="flex items-center gap-3">
-                          <img src={item.logo} alt={item.nom} className="h-10 w-20 object-contain" />
+                          <img src={`http://localhost/obro-production-backend/${item.logo}`} alt={item.nom} className="h-10 w-20 object-contain" />
                           <span className="font-semibold">{item.nom}</span>
                         </div>
                       </td>
@@ -1121,6 +1206,7 @@ const ObroProductionSite = () => {
                       <td className="p-3">
                         {item.date_cloture ? new Date(item.date_cloture).toLocaleDateString('fr-FR') : 'N/A'}
                       </td>
+                      
                       <td className="p-3">
                         <span className="px-3 py-1 rounded-full text-sm font-semibold bg-green-100 text-green-800">
                           {item.status}
@@ -1163,7 +1249,7 @@ const ObroProductionSite = () => {
                             item.status === 'actif' ? 'text-orange-600 hover:text-orange-800' : 'text-green-600 hover:text-green-800'
                           } font-semibold mr-3 transition-colors`}
                         >
-                          {item.status === 'actif' ? 'Bloquer' : 'RÃƒÂ©activer'}
+                          {item.status === 'actif' ? 'Bloquer' : 'Réactiver'}
                         </button>
                         <button 
                           onClick={() => handleEdit(item)}
@@ -1180,6 +1266,7 @@ const ObroProductionSite = () => {
                       </td>
                     </tr>
                   ))}
+               
                 </tbody>
               </table>
             </div>
@@ -1189,81 +1276,198 @@ const ObroProductionSite = () => {
     </div>
   );
 
+const EquipeDirigeanteView = () => (
+  <div className="py-12 md:py-20 px-4 bg-gradient-to-b from-gray-900 to-black min-h-screen">
+    <div className="max-w-7xl mx-auto">
+      <h2 className="text-4xl md:text-6xl font-bold text-white mb-3 md:mb-4 text-center animate-fade-in">
+        Notre Équipe Dirigeante
+      </h2>
+      <p className="text-base md:text-xl text-gray-400 mb-8 md:mb-12 text-center">
+        Découvrez les leaders qui portent O'BRO Production
+      </p>
 
-  const CelebritesView = () => (
-    <div className="py-12 md:py-20 px-4 bg-gradient-to-b from-gray-900 to-black min-h-screen">
-      <div className="max-w-7xl mx-auto">
-        <h2 className="text-4xl md:text-6xl font-bold text-white mb-3 md:mb-4 text-center animate-fade-in">Nos Talents</h2>
-        <p className="text-base md:text-xl text-gray-400 mb-8 md:mb-12 text-center">Découvrez les artistes qui font O'BRO Production</p>
-        
-        <div className="grid md:grid-cols-3 lg:grid-cols-4 gap-6 md:gap-8">
-          {celebrites.filter(c => c.status === 'publiée').map((celeb, index) => (
-            <div 
-              key={celeb.id} 
-              className="bg-gray-800 rounded-2xl overflow-hidden shadow-2xl transform hover:scale-105 transition-all animate-fade-in"
-              style={{ animationDelay: `${index * 0.1}s` }}
-            >
-              <div className="h-64 md:h-80">
-                <img 
-                  src={celeb.img} 
-                  alt={celeb.nom_celebrite}
-                  className="w-full h-full object-cover transform hover:scale-110 transition-all duration-500"
-                />
-              </div>
-              <div className="p-4 md:p-6">
-                <h3 className="text-xl md:text-2xl font-bold text-white mb-2">{celeb.nom_celebrite}</h3>
-                <p className="text-sm md:text-base text-red-500 font-semibold mb-4">{celeb.fonction}</p>
-                <div className="flex gap-4 justify-center">
-                  <a 
-                    href={celeb.url_insta} 
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="bg-gradient-to-br from-purple-600 to-pink-600 text-white p-3 rounded-full hover:scale-110 transition-all"
-                  >
-                    <Instagram size={20} />
-                  </a>
-                  <a 
-                    href={celeb.url_face} 
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="bg-blue-600 text-white p-3 rounded-full hover:scale-110 transition-all"
-                  >
-                    <Facebook size={20} />
-                  </a>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-
-  const PartenairesView = () => (
-    <div className="py-12 md:py-20 px-4 bg-black min-h-screen">
-      <div className="max-w-7xl mx-auto">
-        <h2 className="text-4xl md:text-6xl font-bold text-white mb-3 md:mb-4 text-center animate-fade-in">Nos Partenaires</h2>
-        <p className="text-base md:text-xl text-gray-400 mb-8 md:mb-12 text-center">Ils nous font confiance</p>
-        
-        <div className="grid md:grid-cols-3 lg:grid-cols-4 gap-6 md:gap-8">
-          {partenaires.filter(p => p.status === 'publié').map((part, index) => (
-            <div 
-              key={part.id} 
-              className="bg-white rounded-2xl p-4 md:p-6 flex flex-col items-center justify-center hover:shadow-2xl transition-all transform hover:scale-105 animate-fade-in"
-              style={{ animationDelay: `${index * 0.1}s` }}
-            >
+      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+        {equipes.map((membre, index) => (
+          <div 
+            key={membre.id} 
+            className="bg-gray-800 rounded-2xl overflow-hidden shadow-2xl transform hover:scale-105 transition-all animate-fade-in"
+            style={{ animationDelay: `${index * 0.1}s` }}
+          >
+            {/* Photo */}
+            <div className="h-96 md:h-[28rem]">
+    
               <img 
-                src={part.logo} 
-                alt={part.nom}
-                className="max-w-full h-20 md:h-24 object-contain mb-4"
+                src={`http://localhost/obro-production-backend/${membre.img}`} 
+                alt={membre.nom_celebrite}
+              className="w-full h-full object-cover transform hover:scale-110 transition-all duration-500"
               />
-              <h3 className="text-lg md:text-xl font-bold text-gray-900 text-center">{part.nom}</h3>
             </div>
-          ))}
-        </div>
+
+            {/* Contenu */}
+            <div className="p-4 md:p-6">
+              <h3 className="text-xl md:text-2xl font-bold text-white mb-2">{membre.nom_celebrite}</h3>
+              <h2 className="text-xl md:text-2xl text-red-500 font-bold mb-4">{membre.fonction}</h2>
+              <p className="text-sm md:text-base text-gray-300 font-semibold mb-4">{membre.bio}</p>
+              
+              <p className="text-sm md:text-base text-gray-300 leading-relaxed mb-4 text-justify">
+                {membre.description}
+              </p>
+
+              {/* Liens sociaux */}
+              <div className="flex gap-4 justify-center">
+                <a 
+                  href={membre.url_insta} 
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="bg-gradient-to-br from-purple-600 to-pink-600 text-white p-3 rounded-full hover:scale-110 transition-all"
+                >
+                  <Instagram size={20} />
+                </a>
+                <a 
+                  href={membre.url_face} 
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="bg-blue-600 text-white p-3 rounded-full hover:scale-110 transition-all"
+                >
+                  <Facebook size={20} />
+                </a>
+                {/* <a 
+                  href={membre.url_tiktok} 
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="bg-blue-600 text-white p-3 rounded-full hover:scale-110 transition-all"
+                >
+                  <TikTok size={20} />
+                </a> */}
+              </div>
+            </div>
+          </div>
+        ))}
       </div>
     </div>
-  );
+  </div>
+);
+
+
+const PartenairesView = () => (
+  <div className="bg-black text-white min-h-screen">
+    <div>
+       <h3 className="text-4xl md:text-4xl font-bold text-center mb-4 animate-fade-in">
+          POURQUOI TRAVAILLER AVEC NOUS… ?
+        </h3>
+    </div>
+   
+
+    {/* SECTION SUCCÈS */}
+    <section className="py-16 px-4 bg-gradient-to-b from-black to-gray-900">
+      <div className="max-w-7xl mx-auto grid md:grid-cols-2 gap-12 items-center">
+        
+        {/* Texte */}
+        <div className="space-y-5 animate-slide-in-left">
+          <h3 className="text-3xl md:text-4xl font-bold">
+            Les facteurs clés de notre succès
+          </h3>
+
+          <ul className="space-y-4 text-gray-300">
+            <li>✔ Une équipe qualifiée, typiquement africaine et multilingue</li>
+            <li>✔ Une structure en plein développement avec des projets originaux</li>
+            <li>✔ Des séries à succès :
+              <span className="italic"> Une femme pour Dibi Kan </span>
+              et
+              <span className="italic"> Les aventures de Papa Notchet</span>
+            </li>
+            <li>✔ Des partenaires de confiance : RTI2, LIFE TV, Cinered</li>
+            <li>✔ Une optimisation du placement de vos produits grâce à notre équipe d’experts</li>
+          </ul>
+        </div>
+
+        {/* Visuel */}
+        <div className="animate-slide-in-right">
+          <img
+            src="/success.png"
+            alt="Succès"
+            className="rounded-2xl shadow-lg"
+          />
+        </div>
+
+      </div>
+    </section>
+ {/* SECTION PARTENAIRES */}
+    <section className="py-12 md:py-20 px-4">
+      <div className="max-w-7xl mx-auto">
+       
+        <p className="text-gray-400 text-center mb-12">
+          Ils nous font confiance
+        </p>
+
+        <div className="grid md:grid-cols-3 lg:grid-cols-4 gap-6">
+          {partenaires
+            .filter(p => p.status === 'publié')
+            .map((part, index) => (
+              <div
+                key={part.id}
+                className="bg-white rounded-2xl p-6 flex flex-col items-center justify-center
+                hover:shadow-2xl transition-all transform hover:scale-105 animate-fade-in"
+                style={{ animationDelay: `${index * 0.1}s` }}
+              >
+                <img
+                  src={`${BASE_URL}/${part.logo}`}
+                  alt={part.nom}
+                  className="h-24 object-contain mb-4"
+                />
+                <h3 className="text-gray-900 font-bold text-center">
+                  {part.nom}
+                </h3>
+              </div>
+            ))}
+        </div>
+      </div>
+    </section>
+    {/* SECTION SERVICES */}
+    <section className="py-16 px-4">
+      <div className="max-w-7xl mx-auto grid md:grid-cols-2 gap-12 items-center">
+
+        {/* Visuel */}
+        <div className="order-2 md:order-1 animate-slide-in-left">
+          <img
+            src="/services.png"
+            alt="Services"
+            className="rounded-2xl shadow-lg"
+          />
+        </div>
+
+        {/* Texte */}
+        <div className="order-1 md:order-2 space-y-6 animate-slide-in-right">
+          <h3 className="text-3xl md:text-4xl font-bold">
+            Les services que nous proposons
+          </h3>
+
+          <ul className="space-y-4 text-gray-300">
+            <li>✔ Apposition du logo de l’annonceur dans :
+              <ul className="ml-6 list-disc text-gray-400">
+                <li>Vidéos (début, milieu, fin)</li>
+                <li>Capsules publicitaires</li>
+              </ul>
+            </li>
+
+            <li>✔ Expositions :
+              <ul className="ml-6 list-disc text-gray-400">
+                <li>Site internet (bandeau partenaires)</li>
+                <li>Mentions lors des entretiens avec la presse</li>
+              </ul>
+            </li>
+
+            <li>
+              ✔ Publicité d’un article spécifique intégré dans les scènes de tournage
+            </li>
+          </ul>
+        </div>
+
+      </div>
+    </section>
+
+  </div>
+);
 
   const ContactView = () => (
     <div className="py-12 md:py-20 px-4 bg-gradient-to-b from-gray-900 to-black min-h-screen">
@@ -1600,12 +1804,16 @@ const ObroProductionSite = () => {
       <div className="min-h-screen bg-black">
         <nav className="fixed w-full bg-black/95 backdrop-blur-sm z-50 shadow-2xl border-b border-red-900/30">
           <div className="max-w-7xl mx-auto px-4 py-3 md:py-4 flex justify-between items-center">
-            <div className="flex items-center gap-2 md:gap-3 cursor-pointer" onClick={() => setCurrentView('home')}>
-              <div className="bg-white p-2 md:p-3 rounded-xl hover:scale-105 transition-all">
-                <span className="text-lg md:text-2xl font-bold text-black">O'BRO</span>
-              </div>
-              <span className="text-red-600 font-bold text-lg md:text-2xl">PRODUCTION</span>
+            <div className="flex items-center gap-2 md:gap-3 cursor-pointer" 
+              onClick={() => setCurrentView('home')}
+            >
+              <img 
+                src="/logoObro2.png"   
+                alt="O'BRO Production" 
+                className="h-full max-h-12 object-contain rounded-lg" 
+              />
             </div>
+
             
             <div className="hidden md:flex gap-2 lg:gap-3">
               {navItems.map(item => {
@@ -1670,7 +1878,7 @@ const ObroProductionSite = () => {
           {currentView === 'home' && <HeroSection />}
           {currentView === 'productions' && <ProductionsView />}
           {currentView === 'casting' && <CastingView />}
-          {currentView === 'celebrites' && <CelebritesView />}
+          {currentView === 'equipes' && <EquipeDirigeanteView />}
           {currentView === 'partenaires' && <PartenairesView />}
           {currentView === 'contact' && <ContactView />}
         </div>
@@ -1689,7 +1897,7 @@ const ObroProductionSite = () => {
                   </div>
                 </div>
                 <p className="text-sm md:text-base text-gray-400 mb-4">
-                  Production audiovisuelle à Abidjan, Côte d'Ivoire
+                  Siège Social | Angré 8è tranche Immeuble BRAKA. 22 BP 35 Abidjan 22 | Numéro du CC (NCC) : 1925322 L
                 </p>
                 <div className="flex gap-4">
                   <a href="#" className="bg-gradient-to-br from-purple-600 to-pink-600 text-white p-3 rounded-full hover:scale-110 transition-all">
